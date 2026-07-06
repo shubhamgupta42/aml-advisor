@@ -15,7 +15,7 @@ Framing:
      actually matches the chunk* — a citation next to a paraphrased hallucination
      is the AML failure mode a regulator cares about."
 
-Pattern lifted from SAP `agent-evaluation`:
+Design note:
   - LLMBasedMetric (aeval/.../scorer/llm_based_metric.py) — the LLM-judge base
   - OnlineEvalOrchestrator._aggregate_session_results (services/online_eval) —
     per-sample scores → run-level metric

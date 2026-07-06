@@ -18,7 +18,7 @@ __pycache__/
 eval_runs/
 *.jsonl
 
-# Personal notes (real-DB workpad — NEVER ship)
+# Local scratch notes — never ship
 data/db_notes_personal/
 
 # Persisted vector store — Dockerfile rebuilds it inside the image

@@ -23,7 +23,7 @@ def main() -> int:
 
     pgdata = ROOT / "pgdata"
     # cleanup_mode=None: leave the daemon running after this script exits, so
-    # the ingest/demo processes (and the user's own shells) can connect to it.
+    # the ingest and app processes (and the user's own shells) can connect to it.
     srv = pgserver.get_server(str(pgdata), cleanup_mode=None)
     uri = srv.get_uri()
 

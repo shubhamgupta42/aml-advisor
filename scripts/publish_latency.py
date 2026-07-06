@@ -14,7 +14,7 @@ Scopes measured:
     synthesizer     — LLM call that combines tool outputs into final answer
     graph_total     — full /ask end-to-end
 
-Pattern lifted from SAP `agent-evaluation`: offline eval and online eval are
+Design note: offline eval and online eval are
 two distinct histograms, not one number (aeval/.../telemetry/metrics.py:126–148,
 `agent_evaluation_offline_run_latency_histogram` vs `..._online_...`). And
 `orchestration_deployment_latency_histogram` is a third scope — the model

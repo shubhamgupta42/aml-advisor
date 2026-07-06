@@ -160,14 +160,14 @@ One run measured against every scope on the same eval set. Source of truth: `eva
 
 **Reading it.** `graph_total` p95 = 1.2s end-to-end (inside the 3s SLO). Rule-only fast path is ~150ms (router + rule_catalog + synth). MDD path is ~900ms (dominated by retrieve+rerank). `retrieval_only` p99 is a cold-start outlier — first call primes embeddings + pgvector; steady-state p50 is 813ms and matches the mdd_rag scope inside the graph.
 
-**Honest gap.** Groundedness number (LLM-judge faithfulness) is queued — the harness (`scripts/run_groundedness.py`) is wired but the current-stack run has not landed. Multi-tool eval slice (Q016–Q044) pending — single-source-only numbers above.
+**Known gaps.** Groundedness number (LLM-judge faithfulness) is queued — the harness (`scripts/run_groundedness.py`) is wired but the current-stack run has not landed. Multi-tool eval slice (Q016–Q044) pending — single-source-only numbers above.
 
 ---
 
 ## Project layout
 
 ```
-fpsm-agent/
+aml-advisor/
 ├── data/
 │   ├── mdds/                       # 3 synthetic Methodology Design Documents
 │   ├── rule_catalog.json           # synthetic Rule Catalog (R-IDs, thresholds, country)
@@ -188,12 +188,12 @@ fpsm-agent/
 
 ## What's deliberately *not* in scope
 
-To stay honest about what this prototype is and isn't:
+Scope boundaries:
 
-- ❌ **Not a replacement for the FPSM classifier.** The FP-suppression ML model (Decision Tree, 56.5% suppression / 2.2% event loss at the German bank engagement) sits *upstream* — it decides which alerts to surface. This system explains the docs behind those decisions to the investigator.
+- ❌ **Not a replacement for the alert-suppression classifier.** The FP-suppression ML model sits *upstream* — it decides which alerts to surface. This system explains the docs behind those decisions to the investigator.
 - ❌ **Not a triage decision-maker.** It never says "suppress this alert." It explains *what the rule says* so the human decides.
 - ❌ **Not regulator-facing.** Internal tool for investigators only.
-- ❌ **Not multilingual / multi-country at MVP.** Single-region corpus.
+- ❌ **Not multilingual.** English corpus in the current release.
 - ❌ **Not fine-tuned.** Docs change quarterly; auditors require explicit citation; RAG is the right tool, not fine-tuning.
 
 ---

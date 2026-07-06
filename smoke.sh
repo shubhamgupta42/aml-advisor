@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# One-command demo launcher for AML Advisor (WSL, no Docker).
-#   ./demo.sh setup    — start local pgvector + ingest corpus (run once)
-#   ./demo.sh 1..4     — run demo question N from docs/DEMO_RUNBOOK.md
-#   ./demo.sh all      — run all four in sequence
+# Smoke-test launcher for AML Advisor (runs without Docker).
+#   ./smoke.sh setup   — start local pgvector + ingest corpus (run once)
+#   ./smoke.sh 1..4    — run a canned end-to-end question
+#   ./smoke.sh all     — run all four in sequence
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -41,5 +41,5 @@ case "${1:-all}" in
   3) ask "$Q3" ;;
   4) ask "$Q4" ;;
   all) ask "$Q1" "$Q2" "$Q3" "$Q4" ;;
-  *) echo "usage: ./demo.sh [setup|1|2|3|4|all]"; exit 1 ;;
+  *) echo "usage: ./smoke.sh [setup|1|2|3|4|all]"; exit 1 ;;
 esac

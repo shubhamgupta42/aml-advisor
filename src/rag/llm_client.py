@@ -7,7 +7,7 @@ Why a provider-agnostic layer:
 - It makes ablation across models cheap: change one env var, re-run the eval,
   compare. The eval harness produces apples-to-apples numbers regardless of
   which provider was used.
-- Default provider is Groq (free tier, Llama-3.3-70B) for dev / portfolio.
+- Default provider is Groq (Llama-3.3-70B) for development.
   Production deployment would swap to Anthropic Claude or AWS Bedrock; the
   contract here (system prompt + user message → answer + usage) is the same.
 
@@ -33,7 +33,7 @@ class LLMResponse:
 
 
 def get_provider() -> Provider:
-    """Read provider from env. Defaults to groq for free-tier dev."""
+    """Read provider from env. Defaults to groq."""
     p = os.environ.get("LLM_PROVIDER", "groq").lower()
     if p not in ("anthropic", "groq"):
         raise ValueError(f"Unknown LLM_PROVIDER: {p}")

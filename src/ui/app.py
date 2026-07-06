@@ -1,4 +1,4 @@
-"""AML Advisor — Streamlit demo UI.
+"""AML Advisor — Streamlit UI.
 
 Run with:
     streamlit run src/ui/app.py
@@ -8,7 +8,7 @@ Two-pane layout:
 - Right: behind-the-scenes — router plan, tool outputs, retrieved chunks, latency
 
 Talks to the FastAPI service at AML_API_URL (default http://127.0.0.1:8765).
-If the API is down, falls back to calling the agent in-process — so the demo works
+If the API is down, falls back to calling the agent in-process — so the app works
 even without a separate API process.
 """
 from __future__ import annotations
@@ -29,8 +29,8 @@ _ROOT = str(Path(__file__).resolve().parents[2])
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-API_URL = os.environ.get("AML_API_URL", os.environ.get("FPSM_API_URL", "http://127.0.0.1:8765"))
-API_TIMEOUT = float(os.environ.get("AML_API_TIMEOUT", os.environ.get("FPSM_API_TIMEOUT", "60")))
+API_URL = os.environ.get("AML_API_URL", os.environ.get("AML_API_URL_LEGACY", "http://127.0.0.1:8765"))
+API_TIMEOUT = float(os.environ.get("AML_API_TIMEOUT", os.environ.get("AML_API_TIMEOUT_LEGACY", "60")))
 
 SAMPLE_QUESTIONS = [
     "What is the pass-through window for R181 in India?",

@@ -1,9 +1,9 @@
 """End-to-end RAG pipeline: question → retrieve → generate.
 
-This is the MDD-only path. The full multi-agent system (Day 2) will route
-some questions here, others to the Rule Catalog and RTCA tools, and have a
-synthesizer combine the results. For Day 1 baseline, this single path is what
-the eval harness exercises.
+This is the MDD-only path. In the full system the router sends some questions
+here and others to the Rule Catalog and RTCA tools, with a synthesizer
+combining the results. The retrieval-only eval harness exercises this path
+in isolation.
 """
 from __future__ import annotations
 
