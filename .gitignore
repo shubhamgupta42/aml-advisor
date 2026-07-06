@@ -1,0 +1,44 @@
+# Secrets
+.env
+.env.local
+*.key
+
+# Personal / non-public artefacts (never push)
+data/db_notes_personal/
+*.docx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.python-version
+*.egg-info/
+dist/
+build/
+
+# Vector store artefacts
+data/chroma_store/
+*.sqlite3
+
+# Eval outputs (large, regenerable)
+eval_runs/
+*.parquet
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Interview preparation material — NEVER push to the public repo
+interview-prep/
+docs/INTERVIEW_NOTES.md
+docs/GENAI_QA.md
+docs/DEMO_RUNBOOK.md
+
+# Local self-contained Postgres (pgserver) data directory
+pgdata/

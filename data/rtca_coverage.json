@@ -1,0 +1,232 @@
+{
+  "version": "RTCA-2026",
+  "approved_date": "2026-01-30",
+  "description": "Risk & Typology Coverage Assessment — the master map of which AML risks are covered in which countries, for which products and customer segments, by which active rule. Source of truth for coverage gaps. Schema: country, typology, product_scope, customer_segments, controlling_rule_id, risk_tier, gap_status.",
+  "country_risk_tiers": {
+    "US": 1, "UK": 1, "DE": 1, "FR": 1, "CH": 1,
+    "SG": 2, "AE": 2, "IN": 2, "HK": 2,
+    "JP": 3, "BR": 3, "ZA": 3,
+    "IR": 4, "KP": 4, "MM": 4, "SY": 4
+  },
+  "coverage_matrix": [
+    {
+      "country": "US",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["CIB-HIGH", "EDD-exempt", "NOSTRO/VOSTRO"],
+      "controlling_rule_id": "R168",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "US",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["Diplomatic", "Treasury-Centre", "NOSTRO/VOSTRO"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "US",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["VASP_FIDUCIARY", "ESCROW", "Treasury-Sweep"],
+      "controlling_rule_id": "R181",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "UK",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["CIB-HIGH", "EDD-exempt"],
+      "controlling_rule_id": "R168",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "UK",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["Diplomatic", "Treasury-Centre"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "UK",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["VASP_FIDUCIARY", "ESCROW"],
+      "controlling_rule_id": "R181",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "DE",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R168",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "DE",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "DE",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R181",
+      "risk_tier": 1,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "IN",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R168",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "IN",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "customer_segments_carved_out": ["NRE", "NRO"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 2,
+      "gap_status": "COVERED",
+      "notes": "NRE/NRO carve-out — covered by local rule LR-IN-NRE-014 with higher threshold"
+    },
+    {
+      "country": "IN",
+      "typology": "Cross-Border Layering (NRE/NRO Special)",
+      "product_scope": ["NRE-Account", "NRO-Account"],
+      "customer_segments_in_scope": ["NRI-Retail"],
+      "controlling_rule_id": "LR-IN-NRE-014",
+      "risk_tier": 2,
+      "gap_status": "COVERED",
+      "notes": "Local Indicator — only Indian rule with NRE/NRO scope"
+    },
+    {
+      "country": "IN",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R181",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "SG",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R168",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "SG",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "SG",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R181",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "AE",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R168",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "AE",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "AE",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R181",
+      "risk_tier": 2,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "JP",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "LR-JP-027",
+      "risk_tier": 3,
+      "gap_status": "COVERED",
+      "notes": "Japan uses local indicator instead of ECL R168"
+    },
+    {
+      "country": "JP",
+      "typology": "Cross-Border Layering",
+      "product_scope": ["CCM", "Retail-Wires"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "R174",
+      "risk_tier": 3,
+      "gap_status": "COVERED"
+    },
+    {
+      "country": "JP",
+      "typology": "Rapid Movement / Funnel",
+      "product_scope": ["DDA", "CCM"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": "LR-JP-019",
+      "risk_tier": 3,
+      "gap_status": "COVERED",
+      "notes": "Japan uses local indicator instead of ECL R181"
+    },
+    {
+      "country": "BR",
+      "typology": "Structuring",
+      "product_scope": ["CCM", "Retail-DDA"],
+      "customer_segments_in_scope": ["Retail", "SME", "Corporate"],
+      "controlling_rule_id": null,
+      "risk_tier": 3,
+      "gap_status": "GAP",
+      "notes": "Coverage gap identified RTCA-2026 §3.4 — remediation tracked under PROG-2026-014"
+    }
+  ]
+}

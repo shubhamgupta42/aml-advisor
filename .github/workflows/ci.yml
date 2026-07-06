@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ── Job 1: cheap checks — always runs, no LLM calls ─────────────────────────
+  static-checks:
+    name: Static checks (imports, types, tools)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Importability — every module must import cleanly
+        run: |
+          python -c "from src.rag import chunker, embedder, vector_store, retriever, prompt, llm_client, pipeline, generator"
+          python -c "from src.agents import rule_catalog_tool, rtca_tool, graph, mcp_server"
+          python -c "from src.api import main"
+          python -c "from src.eval import score_retrieval, score_citation_accuracy, score_refusal"
+
+      - name: Deterministic tools — round-trip the catalogs without LLM
+        run: |
+          python -c "
+          from src.agents.rule_catalog_tool import get_parameter, get_corridor_threshold
+          from src.agents.rtca_tool import get_coverage, is_segment_in_scope, list_gaps
+
+          # Frozen facts from the synthetic catalog — these must never silently drift
+          assert get_parameter('R181', 'pass_through_window_hours', country='IN').value == 72
+          assert get_parameter('R181', 'pass_through_window_hours').value == 48
+          assert get_corridor_threshold('R174', 1, 4).value == 7500
+          gaps = list_gaps().value
+          assert any(g['country'] == 'BR' and g['gap_status'] == 'GAP' for g in gaps)
+          seg = is_segment_in_scope('IN', 'Cross-Border Layering', 'NRE').value
+          # is_segment_in_scope returns a list of verdicts for IN cross-border
+          assert any(v.get('carved_out') for v in seg)
+          print('Deterministic-tool invariants: OK')
+          "
+
+      - name: Router classification — no LLM, regex-only
+        run: |
+          python -c "
+          from src.agents.graph import _deterministic_route as route
+
+          cases = [
+              ('What is the pass-through window for R181 in India?', {'rule_catalog'}, 'R181', 'IN'),
+              ('Is NRE in scope for cross-border layering in India?', {'rtca'}, None, 'IN'),
+              ('What are the current coverage gaps in RTCA?', {'rtca'}, None, None),
+              ('List all local indicators for India.', {'rule_catalog'}, None, 'IN'),
+              ('What is the corridor threshold for tier 1 to tier 4 on R174?', {'rule_catalog'}, 'R174', None),
+          ]
+          for q, expected_tools, rule, country in cases:
+              p = route(q)
+              assert expected_tools.issubset(set(p['tools'])), (q, p)
+              assert p['rule_id'] == rule, (q, p)
+              assert p['country'] == country, (q, p)
+          print('Router classification invariants: OK')
+          "
+
+      - name: Build the vector store (deterministic; no network LLM)
+        run: python scripts/ingest_mdds.py
+
+      - name: MCP server — boot + tool listing via SDK
+        run: |
+          python <<'PY'
+          import asyncio
+          from mcp import ClientSession, StdioServerParameters
+          from mcp.client.stdio import stdio_client
+
+          async def go():
+              params = StdioServerParameters(command="python", args=["-m", "src.agents.mcp_server"])
+              async with stdio_client(params) as (r, w):
+                  async with ClientSession(r, w) as sess:
+                      await sess.initialize()
+                      tools = await sess.list_tools()
+                      assert len(tools.tools) == 10, f"expected 10 tools, got {len(tools.tools)}"
+                      res = await sess.call_tool(
+                          "rule_catalog.get_parameter",
+                          {"rule_id": "R181", "parameter": "pass_through_window_hours", "country": "IN"},
+                      )
+                      assert "72" in res.content[0].text, res.content[0].text
+                      print("MCP server: 10 tools, R181/IN → 72h. OK.")
+
+          asyncio.run(go())
+          PY
+
+  # ── Job 2: eval gate — only runs when GROQ_API_KEY is set ───────────────────
+  eval-gate:
+    name: Eval gate (Hit@1, citation accuracy, refusal)
+    runs-on: ubuntu-latest
+    needs: static-checks
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build vector store
+        run: python scripts/ingest_mdds.py
+
+      - name: Run baseline eval (20-Q slice)
+        env:
+          LLM_PROVIDER: groq
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: llama-3.3-70b-versatile
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "GROQ_API_KEY secret not set — skipping eval-gate. Configure under repo Settings → Secrets."
+            exit 0
+          fi
+          python scripts/run_baseline.py --limit 20 --types mdd_only ood_refusal
+
+      - name: Enforce eval thresholds
+        run: |
+          python <<'PY'
+          import glob, json, sys
+
+          # Use the latest summary JSON written by run_baseline.py
+          summaries = sorted(glob.glob("eval_runs/*summary*.json"))
+          if not summaries:
+              print("No eval summary found — failing the gate.")
+              sys.exit(1)
+          with open(summaries[-1]) as f:
+              s = json.load(f)
+          print("Eval summary:", json.dumps(s, indent=2))
+
+          # Thresholds calibrated to Day-1-PM baseline (with reranker):
+          #   Hit@1 ≥ 0.50, citation accuracy = 1.00, refusal precision ≥ 0.80
+          retrieval = s.get("retrieval", {})
+          generation = s.get("generation", {})
+          assert retrieval.get("hit_at_1", 0) >= 0.50, f"Hit@1 regressed: {retrieval.get('hit_at_1')}"
+          assert generation.get("citation_accuracy", 0) >= 0.95, f"Citation acc regressed: {generation.get('citation_accuracy')}"
+          assert generation.get("refusal_precision", 0) >= 0.80, f"Refusal precision regressed: {generation.get('refusal_precision')}"
+          print("Eval gate: all thresholds met.")
+          PY
+
+      - name: Upload eval artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-run-${{ github.sha }}
+          path: eval_runs/
+          retention-days: 14

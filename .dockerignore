@@ -1,0 +1,36 @@
+# Build context exclusions — keep the image small and secret-free.
+
+# Secrets / local-only
+.env
+.env.*
+!.env.example
+
+# Caches
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Eval / runtime artifacts
+eval_runs/
+*.jsonl
+
+# Personal notes (real-DB workpad — NEVER ship)
+data/db_notes_personal/
+
+# Persisted vector store — Dockerfile rebuilds it inside the image
+data/chroma_store/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Docs / notebooks are needed in the image? No — strip them out for size
+notebooks/
+docs/
+*.md
+!README.md

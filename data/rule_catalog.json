@@ -1,0 +1,124 @@
+{
+  "version": "2026-Q1",
+  "generated_at": "2026-01-30",
+  "description": "Production Rule Catalog — active AML transaction-monitoring rules. Each entry corresponds to a deployed rule, with the country scope, the controlling MDD, and the live threshold parameters. Schema: rule_id, typology, mdd_ref, scope (ECL=global / LOCAL=country-specific), countries, parameters.",
+  "rules": [
+    {
+      "rule_id": "R168",
+      "name": "Cash Structuring — Round Denomination",
+      "typology": "Structuring",
+      "mdd_ref": "MDD-001-STRUCT-v3.2",
+      "scope": "ECL",
+      "status": "ACTIVE",
+      "countries": ["US", "UK", "DE", "SG", "IN", "AE"],
+      "parameters": {
+        "lookback_days": 5,
+        "min_transactions": 3,
+        "amount_band_usd": [8500, 9999],
+        "cumulative_floor_usd": 25000,
+        "min_round_denomination_count": 2,
+        "min_distinct_booking_locations": 2
+      },
+      "country_overrides": {}
+    },
+    {
+      "rule_id": "R174",
+      "name": "Cross-Border High-Risk Corridor",
+      "typology": "Cross-Border Layering",
+      "mdd_ref": "MDD-002-CROSSBORDER-v2.4",
+      "scope": "ECL",
+      "status": "ACTIVE",
+      "countries": ["US", "UK", "DE", "SG", "IN", "AE", "JP"],
+      "parameters": {
+        "lookback_days": 30,
+        "min_transactions": 2,
+        "expected_volume_multiplier": 3.0,
+        "default_threshold_usd": 12000
+      },
+      "country_overrides": {
+        "US": {"default_threshold_usd": 15000},
+        "SG": {"default_threshold_usd": 15000},
+        "IN": {"default_threshold_usd": 7500},
+        "AE": {"default_threshold_usd": 15000},
+        "JP": {"default_threshold_usd": 20000}
+      },
+      "corridor_specific": [
+        {"origin_tier": 1, "dest_tier": 4, "threshold_usd": 7500},
+        {"origin_tier": 1, "dest_tier": 3, "threshold_usd": 12000},
+        {"origin_tier": 2, "dest_tier": 3, "threshold_usd": 12000},
+        {"origin_tier": 2, "dest_tier": 4, "threshold_usd": 7500},
+        {"origin_tier": 3, "dest_tier": 3, "threshold_usd": 20000}
+      ]
+    },
+    {
+      "rule_id": "R181",
+      "name": "Rapid Movement of Funds — Pass-Through",
+      "typology": "Layering / Funnel Account",
+      "mdd_ref": "MDD-003-RAPIDMOVE-v1.5",
+      "scope": "ECL",
+      "status": "ACTIVE",
+      "countries": ["US", "UK", "DE", "SG", "IN", "AE"],
+      "parameters": {
+        "pass_through_window_hours": 48,
+        "min_credit_usd": 5000,
+        "debit_ratio_threshold": 0.70,
+        "residual_balance_max_ratio": 0.10,
+        "min_outbound_counterparties": 2,
+        "pattern_reinforcement_days": 2,
+        "reinforcement_window_days": 30
+      },
+      "country_overrides": {
+        "SG": {"pass_through_window_hours": 72},
+        "IN": {"pass_through_window_hours": 72, "min_credit_usd": 3000},
+        "AE": {"pass_through_window_hours": 72}
+      }
+    },
+    {
+      "rule_id": "LR-IN-NRE-014",
+      "name": "NRE/NRO Carve-Out — Cross-Border Local Indicator",
+      "typology": "Cross-Border Layering (Local)",
+      "mdd_ref": "MDD-002-CROSSBORDER-v2.4 §3",
+      "scope": "LOCAL",
+      "status": "ACTIVE",
+      "countries": ["IN"],
+      "parameters": {
+        "lookback_days": 30,
+        "min_transactions": 2,
+        "threshold_usd": 25000,
+        "applicable_account_types": ["NRE", "NRO"]
+      },
+      "country_overrides": {}
+    },
+    {
+      "rule_id": "LR-JP-019",
+      "name": "Rapid Movement — Japan Local Indicator",
+      "typology": "Layering (Local)",
+      "mdd_ref": "MDD-003-RAPIDMOVE-v1.5 §2",
+      "scope": "LOCAL",
+      "status": "ACTIVE",
+      "countries": ["JP"],
+      "parameters": {
+        "pass_through_window_hours": 96,
+        "min_credit_usd": 7500,
+        "debit_ratio_threshold": 0.75,
+        "min_outbound_counterparties": 3
+      },
+      "country_overrides": {}
+    },
+    {
+      "rule_id": "LR-JP-027",
+      "name": "Structuring — Japan Local Indicator",
+      "typology": "Structuring (Local)",
+      "mdd_ref": "(local; not in MDD scope of this corpus)",
+      "scope": "LOCAL",
+      "status": "ACTIVE",
+      "countries": ["JP"],
+      "parameters": {
+        "lookback_days": 7,
+        "min_transactions": 4,
+        "amount_band_jpy": [800000, 999999]
+      },
+      "country_overrides": {}
+    }
+  ]
+}
