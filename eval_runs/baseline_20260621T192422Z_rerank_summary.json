@@ -1,0 +1,28 @@
+{
+  "run_id": "20260621T192422Z",
+  "tag": "rerank",
+  "n_questions": 3,
+  "use_rerank": true,
+  "retrieval_only": false,
+  "retrieval": {
+    "hit_at_1": 0.333,
+    "hit_at_3": 1.0,
+    "hit_at_5": 1.0,
+    "mrr": 0.556
+  },
+  "generation": {
+    "citation_accuracy_mean": 1.0,
+    "refusal_precision": null,
+    "answerable_incorrectly_refused": 0,
+    "n_answerable": 3,
+    "n_refusal_expected": 0
+  },
+  "latency_ms": {
+    "p50": 1498,
+    "p95": 21816,
+    "p99": 21816,
+    "mean": 8233
+  },
+  "cost_usd_total": 0.0038,
+  "cost_usd_per_query": 0.001252
+}

@@ -42,3 +42,7 @@ docs/DEMO_RUNBOOK.md
 
 # Local self-contained Postgres (pgserver) data directory
 pgdata/
+
+# ...but keep the eval evidence (summaries are small and back the README numbers)
+!eval_runs/*_summary.json
+!eval_runs/latency_latest.json

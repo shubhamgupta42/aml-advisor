@@ -1,0 +1,30 @@
+{
+  "timestamp": "20260622T152713Z",
+  "n_questions": 3,
+  "n_completed": 3,
+  "n_errored": 0,
+  "types": [
+    "multi_tool",
+    "rtca_only",
+    "rule_catalog_only"
+  ],
+  "tool_selection": {
+    "accuracy": 0.6666666666666666,
+    "mean_recall": 0.6666666666666666,
+    "mean_precision": 0.5
+  },
+  "router_fallback_rate": 0.0,
+  "answer_nonempty_rate": 1.0,
+  "mean_citation_count": 2,
+  "step_count_distribution": {
+    "min": 3,
+    "max": 4,
+    "mean": 3.3333333333333335
+  },
+  "latency_ms": {
+    "p50": 966,
+    "p95": 2133,
+    "p99": 2133,
+    "mean": 1304
+  }
+}

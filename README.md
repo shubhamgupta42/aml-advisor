@@ -121,9 +121,9 @@ python -m src.agents.mcp_server
 | MCP server exposing all 10 tools | ✅ | verified end-to-end via the official `mcp` SDK client |
 | Provider-agnostic LLM client | ✅ | Groq (free) and Anthropic backends behind one interface |
 | Eval harness (Hit@k, MRR, citation acc, refusal, latency, cost) | ✅ | `scripts/run_baseline.py` writes JSONL + JSON summary |
-| FastAPI HTTP surface | ⏳ | agent is library-callable today; HTTP layer pending |
-| Streamlit UI | ⏳ | pending |
-| Dockerfile + GHA CI | ⏳ | pending |
+| FastAPI HTTP surface | ✅ | `POST /ask`, `POST /retrieve`, `GET /healthz`, `GET /version` |
+| Streamlit UI | ✅ | two-pane: cited answer + retrieval/router transparency panel |
+| Dockerfile + GHA CI | ✅ | eval-gated CI; ingest baked at image build time |
 | Presidio PII redaction | ⏳ | guard exists in prompt; Presidio integration pending |
 
 ---
@@ -228,4 +228,4 @@ Design decisions are documented inline in each module's docstring — `src/rag/v
 
 ---
 
-*This is a personal portfolio project. All compliance documents in `data/` are synthetic, constructed from public AML typology guidance (FATF, FinCEN, BIS). No proprietary content is included.*
+*Public reference implementation. All compliance documents in `data/` are fully synthetic, constructed from public AML typology guidance (FATF, FinCEN, BIS). No proprietary or client content is included.*
