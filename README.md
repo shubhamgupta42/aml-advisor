@@ -37,9 +37,9 @@ The docs are **internal, country-specific, and confidential** — they cannot le
           ┌──────────┐ ┌──────────┐ ┌──────────┐
           │ MDD-RAG  │ │ Rule     │ │ RTCA     │
           │  node    │ │ Catalog  │ │ Coverage │
-          │ (Chroma  │ │  tool    │ │  tool    │
-          │ +BM25    │ │ (MCP)    │ │ (MCP)    │
-          │ +rerank) │ │          │ │          │
+          │(pgvector │ │  tool    │ │  tool    │
+          │ +BM25    │ │ (determ. │ │ (determ. │
+          │ +rerank) │ │  lookup) │ │  lookup) │
           └────┬─────┘ └────┬─────┘ └────┬─────┘
                └───────────┬┴────────────┘
                            ▼
@@ -62,14 +62,14 @@ These are *requirements*, not wishes. Every commit is eval-gated against them.
 
 | Dimension | SLO | How it's enforced |
 |---|---|---|
-| **Latency** | p95 < 3.0s end-to-end | Top-k=5 after rerank · async I/O · small model for routing · semantic cache |
-| **Cost** | < $0.02 / query | Haiku for routing · Sonnet only for synthesis · prompt token budget · cache |
+| **Latency** | p95 < 3.0s end-to-end | Top-k=5 after rerank · parallel tool fan-out · deterministic fast path for catalog/RTCA lookups · Groq LPU inference |
+| **Cost** | < $0.02 / query | Single Llama-3.3-70B on Groq for router + synthesis (~$0.001/query paid-tier equivalent) · prompt token budget |
 | **Faithfulness** | > 0.95 on eval set | Strict-citation prompt · refusal path · LLM-as-judge (validated against human labels) |
 | **Citation accuracy** | > 0.95 | Deterministic check: cited chunk ID must contain the claim string |
-| **Refusal precision** | > 0.90 on OOD questions | 20% of eval set is OOD; tracked separately |
+| **Refusal precision** | > 0.90 on OOD questions | Dedicated OOD slice in the eval set; tracked separately |
 | **Tool-selection accuracy** | > 0.90 | Router output vs labeled gold tool-set on multi-tool eval slice |
 | **Security** | Zero prompt-injection escapes | XML-tagged retrieved context · instruction-hierarchy prompt · adversarial test cases |
-| **PII** | No PII leaves machine | Presidio runs pre-embedding and pre-LLM call |
+| **PII** | No PII leaves machine | Local embeddings + local vector store · prompt-level redaction rule (Presidio integration pending) |
 
 ---
 
@@ -85,13 +85,17 @@ pip install -r requirements.txt
 cp .env.example .env
 # edit .env — set GROQ_API_KEY=...  (free key at https://console.groq.com)
 
-# 3. Build the vector store from the 3 synthetic MDDs (~10 sec)
+# 3. Start Postgres + pgvector (either works)
+docker compose up -d                 # Docker route
+python scripts/local_pg.py           # or: self-contained local Postgres, no Docker
+
+# 4. Ingest the corpus — 3 MDDs + 7 regulatory docs -> 77 chunks (~30 sec)
 python scripts/ingest_mdds.py
 
-# 4. Run the eval harness — single-source slice (MDD-only + OOD-refusal)
+# 5. Run the eval harness — single-source slice (MDD-only + OOD-refusal)
 python scripts/run_baseline.py --limit 20
 
-# 5. Try the multi-agent end-to-end on one question
+# 6. Try the graph end-to-end on one question
 python -c "
 from src.agents.graph import ask
 r = ask('What is the pass-through window for R181 in India?')
@@ -100,7 +104,7 @@ print('Tools used:', r.plan['tools'])
 print('Citations:', r.citations)
 "
 
-# 6. (Optional) Run the MCP server — discoverable by any MCP client
+# 7. (Optional) Run the MCP server — discoverable by any MCP client
 python -m src.agents.mcp_server
 ```
 
@@ -110,10 +114,10 @@ python -m src.agents.mcp_server
 
 | Component | Status | Notes |
 |---|---|---|
-| Markdown chunker (H2/H3-aware) | ✅ | 33 chunks across 3 MDDs |
-| bge-small-en-v1.5 embeddings + Chroma cosine | ✅ | persisted locally, no cloud |
+| Markdown chunker (H2/H3-aware) | ✅ | 77 chunks across 3 MDDs + 7 regulatory docs |
+| bge-small-en-v1.5 embeddings + pgvector cosine (HNSW) | ✅ | Postgres 16, local — no cloud |
 | Hybrid retrieval (BM25 + vector, RRF) | ✅ | `src/rag/retriever.py` |
-| Cross-encoder reranker (bge-reranker-base) | ✅ | **Hit@1: 0.25 → 0.56 ablation** |
+| Cross-encoder reranker (bge-reranker-base) | ✅ | **Hit@1: 0.25 → 0.50 ablation** (see `eval_runs/`) |
 | Strict-citation prompt + XML-tagged context | ✅ | refusal sub-rule for "Related Documents" cross-references |
 | Rule Catalog tool (6 deterministic lookups) | ✅ | every result carries a JSON-pointer source |
 | RTCA tool (6 deterministic lookups) | ✅ | same `ToolResult` contract |
@@ -128,21 +132,23 @@ python -m src.agents.mcp_server
 
 ---
 
-## Baseline results (2026-06-22)
+## Baseline results (retrieval ablation, 2026-07-01 — reproduced 2026-07-06)
 
-20-question run, MDD-only slice + OOD-refusal slice, Llama-3.3-70B on Groq free tier, bge-small-en-v1.5 embeddings, bge-reranker-base.
+20-question slice (MDD + OOD-refusal) on the full 77-chunk corpus, bge-small-en-v1.5 embeddings, bge-reranker-base. Source of truth: `eval_runs/baseline_20260701T182314Z_*` and `eval_runs/baseline_20260706T*`.
 
 | Metric | With Reranker | Without Reranker | Δ |
 |---|---|---|---|
-| **Hit@1** | **0.56** | 0.25 | **+0.31 (+124%)** |
-| Hit@3 | 0.69 | 0.44 | +0.25 (+57%) |
-| Hit@5 | 0.75 | 0.62 | +0.13 (+21%) |
-| MRR | 0.62 | 0.38 | +0.24 (+63%) |
-| Citation accuracy | 1.00 | 1.00 | — |
-| Refusal precision (OOD) | 0.80 | 0.80 | — |
-| Cost / query (paid-tier equivalent) | $0.0011 | $0.0011 | (free-tier: $0) |
+| **Hit@1** | **0.50** | 0.25 | **+0.25 (2×)** |
+| Hit@3 | 0.62 | 0.44 | +0.18 |
+| Hit@5 | 0.62 | 0.56 | +0.06 |
+| MRR | 0.55 | 0.37 | +0.18 |
+| Citation accuracy* | 1.00 | 1.00 | — |
+| Refusal precision (OOD)* | 0.80 | 0.80 | — |
+| Cost / query (paid-tier equivalent) | $0.0011 | $0.0011 | — |
 
-**Headline finding.** The reranker more than doubles top-1 retrieval (Hit@1 0.25 → 0.56) while Hit@5 only moves 0.62 → 0.75 — the right answer was usually *somewhere* in the top-5 even without rerank, just at rank 3 or 4. The reranker's job is to push the right chunk to rank 1, which matters because of the "Lost in the Middle" problem.
+\* Citation accuracy and refusal precision are from the end-to-end run (`eval_runs/baseline_20260621T*`); the ablation rows above are retrieval-only.
+
+**Headline finding.** The reranker doubles top-1 retrieval (Hit@1 0.25 → 0.50) while Hit@5 moves only 0.56 → 0.62 — when the right chunk is retrieved at all, it's usually already in the candidate pool; the reranker's job is pushing it to rank 1, which matters because of the "Lost in the Middle" problem. The remaining gap (Hit@5 = 0.62) is a recall ceiling — the fix path is query expansion, not more rerank tuning.
 
 ## Latency (canonical, 2026-07-01, 20 questions, Groq Llama-3.3-70B synth)
 
@@ -170,18 +176,19 @@ One run measured against every scope on the same eval set. Source of truth: `eva
 aml-advisor/
 ├── data/
 │   ├── mdds/                       # 3 synthetic Methodology Design Documents
+│   ├── regulatory/                 # 7 synthetic regulatory fixtures (US/UK/DE/SG/IN/AE/JP)
 │   ├── rule_catalog.json           # synthetic Rule Catalog (R-IDs, thresholds, country)
 │   ├── rtca_coverage.json          # synthetic RTCA mapping (country × typology × product)
-│   ├── chroma_store/               # local vector store (built by scripts/ingest_mdds.py)
 │   └── ground_truth/eval_set.json  # 54 labeled Q&A for the eval harness
 ├── src/
-│   ├── rag/                        # chunker, embedder, vector_store, retriever, prompt, llm_client, pipeline
+│   ├── rag/                        # chunker, embedder, vector_store (pgvector), retriever, prompt, llm_client
 │   ├── agents/                     # rule_catalog_tool, rtca_tool, graph (LangGraph), mcp_server
+│   ├── api/                        # FastAPI: POST /ask, POST /retrieve, GET /healthz
+│   ├── ui/                         # Streamlit two-pane UI
 │   └── eval/                       # retrieval / generation / refusal / latency / cost metrics
-├── scripts/                        # ingest_mdds.py, smoke_retrieve.py, run_baseline.py
-├── eval_runs/                      # JSONL per-question results + JSON summaries
-├── docs/                           # design notes and runbooks
-└── tests/                          # pytest
+├── scripts/                        # ingest_mdds.py, local_pg.py, run_baseline.py, run_groundedness.py
+├── eval_runs/                      # eval summaries (ablation + latency evidence)
+└── tests/                          # offline unit tests (pytest)
 ```
 
 ---
